@@ -1,93 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ring the Bell</title>
-  <style>
-    body {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #f4f4f4;
-      font-family: Arial, sans-serif;
-    }
-
-    img {
-      width: 200px;
-      height: auto;
-    }
-
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    /* Active button styles */
-    button.active {
-      background-color: green;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shake to Ring Bell</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
+        }
+        img {
+            width: 200px;
+            height: auto;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
-  <img src="bell_image.jpg" alt="Bell" id="bellImage">
-  <button id="ringButton">Loop Ring</button>
-  <button id="shakeButton">Shake To Ring</button>
 
-  <audio id="bellSound" src="bell.mp3" loop></audio>
+    <img id="bell" src="bell_image.jpg" alt="Bell">
+    <button id="startButton">Start</button>
 
-  <script>
-    const ringButton = document.getElementById('ringButton');
-    const shakeButton = document.getElementById('shakeButton');
-    const bellSound = document.getElementById('bellSound');
-    const shakeThreshold = 10; // Adjust this as needed
+    <audio id="bellSound" loop>
+        <source src="bell.mp3" type="audio/mpeg">
+    </audio>
 
-    let isShaking = false;
-    let enableShaking = false;
+    <script>
+        let bellSound = document.getElementById('bellSound');
+        let isShaking = false;
+        let shakeThreshold = 10; // Adjust this to change sensitivity
+        let started = false;
 
-    ringButton.addEventListener('click', () => {
-      enableShaking = false;
-      bellSound.play();
-      // Set active button
-      ringButton.classList.add('active');
-      shakeButton.classList.remove('active');
-    });
+        document.getElementById('startButton').addEventListener('click', () => {
+            started = true;
+            document.getElementById('startButton').disabled = true; // Disable the button after starting
 
-    shakeButton.addEventListener('click', () => {
-      enableShaking = true;
-      if (!isShaking) {
-        isShaking = true;
-        startShakeDetection();
-      }
-      // Set active button
-      shakeButton.classList.add('active');
-      ringButton.classList.remove('active');
-    });
+            // Request permission for DeviceMotionEvent on iOS 13+
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission().then(response => {
+                    if (response === 'granted') {
+                        startDeviceMotion();
+                    } else {
+                        alert('Permission to access device motion data was denied.');
+                    }
+                }).catch(console.error);
+            } else {
+                startDeviceMotion();
+            }
+        });
 
-    function startShakeDetection() {
-      window.addEventListener('devicemotion', handleShake);
-    }
+        function startDeviceMotion() {
+            if (window.DeviceMotionEvent) {
+                window.addEventListener('devicemotion', function(event) {
+                    if (!started) return; // Do nothing if not started
+                    let acceleration = event.accelerationIncludingGravity;
+                    let shake = Math.sqrt(acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2);
 
-    function handleShake(event) {
-      const acceleration = event.accelerationIncludingGravity;
-      const shakeMagnitude = Math.sqrt(acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2);
-
-      if (enableShaking) {
-        if (shakeMagnitude > shakeThreshold) {
-          if (bellSound.paused) {
-            bellSound.play();
-          }
-        } else if (!bellSound.paused) {
-          // Stop playing if shaking stops
-          bellSound.pause();
+                    if (shake > shakeThreshold && !isShaking) {
+                        bellSound.play();
+                        isShaking = true;
+                    } else if (shake < shakeThreshold && isShaking) {
+                        bellSound.pause();
+                        bellSound.currentTime = 0;
+                        isShaking = false;
+                    }
+                });
+            } else {
+                alert('DeviceMotionEvent is not supported on your device.');
+            }
         }
-      }
-    }
-  </script>
+    </script>
+
 </body>
 </html>
