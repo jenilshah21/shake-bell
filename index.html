@@ -28,7 +28,7 @@
 </head>
 <body>
 
-    <img id="bell" src="https://m.media-amazon.com/images/I/71urGgZbddL.jpg" alt="Bell">
+    <img id="bell" src="bell_image.jpg" alt="Bell">
     <button id="startButton">Start</button>
 
     <audio id="bellSound" loop>
@@ -38,31 +38,46 @@
     <script>
         let bellSound = document.getElementById('bellSound');
         let isShaking = false;
-        let shakeThreshold = 1; // Adjust this to change sensitivity
+        let shakeThreshold = 15; // Adjust this to change sensitivity
         let started = false;
 
         document.getElementById('startButton').addEventListener('click', () => {
             started = true;
             document.getElementById('startButton').disabled = true; // Disable the button after starting
+
+            // Request permission for DeviceMotionEvent on iOS 13+
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission().then(response => {
+                    if (response === 'granted') {
+                        startDeviceMotion();
+                    } else {
+                        alert('Permission to access device motion data was denied.');
+                    }
+                }).catch(console.error);
+            } else {
+                startDeviceMotion();
+            }
         });
 
-        if (window.DeviceMotionEvent) {
-            window.addEventListener('devicemotion', function(event) {
-                if (!started) return; // Do nothing if not started
-                let acceleration = event.accelerationIncludingGravity;
-                let shake = Math.sqrt(acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2);
+        function startDeviceMotion() {
+            if (window.DeviceMotionEvent) {
+                window.addEventListener('devicemotion', function(event) {
+                    if (!started) return; // Do nothing if not started
+                    let acceleration = event.accelerationIncludingGravity;
+                    let shake = Math.sqrt(acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2);
 
-                if (shake > shakeThreshold && !isShaking) {
-                    bellSound.play();
-                    isShaking = true;
-                } else if (shake < shakeThreshold && isShaking) {
-                    bellSound.pause();
-                    bellSound.currentTime = 0;
-                    isShaking = false;
-                }
-            });
-        } else {
-            alert('DeviceMotionEvent is not supported on your device.');
+                    if (shake > shakeThreshold && !isShaking) {
+                        bellSound.play();
+                        isShaking = true;
+                    } else if (shake < shakeThreshold && isShaking) {
+                        bellSound.pause();
+                        bellSound.currentTime = 0;
+                        isShaking = false;
+                    }
+                });
+            } else {
+                alert('DeviceMotionEvent is not supported on your device.');
+            }
         }
     </script>
 
