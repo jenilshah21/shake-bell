@@ -61,10 +61,10 @@
       const shakeMagnitude = Math.sqrt(acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2);
 
       if (shakeMagnitude > shakeThreshold) {
-        if (!bellSound.paused) {
+        if (bellSound.paused) {
           bellSound.play();
         }
-      } else if (bellSound.paused) {
+      } else if (!bellSound.paused) {
         // Stop playing if shaking stops
         bellSound.pause();
       }
