@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shake to Ring Bell</title>
-    <style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ring the Bell</title>
+  <style>
         body {
             display: flex;
             flex-direction: column;
@@ -27,59 +27,48 @@
     </style>
 </head>
 <body>
+  <img src="bell_image.jpg" alt="Bell" id="bellImage">
+  <button id="ringButton">Ring</button>
+  <button id="shakeButton">Shake</button>
 
-    <img id="bell" src="bell_image.jpg" alt="Bell">
-    <button id="startButton">Start</button>
+  <audio id="bellSound" src="bell.mp3" loop></audio>
 
-    <audio id="bellSound" loop>
-        <source src="bell.mp3" type="audio/mpeg">
-    </audio>
+  <script>
+    const ringButton = document.getElementById('ringButton');
+    const shakeButton = document.getElementById('shakeButton');
+    const bellSound = document.getElementById('bellSound');
+    const shakeThreshold = 10; // Adjust this as needed
 
-    <script>
-        let bellSound = document.getElementById('bellSound');
-        let isShaking = false;
-        let shakeThreshold = 10; // Adjust this to change sensitivity
-        let started = false;
+    let isShaking = false;
 
-        document.getElementById('startButton').addEventListener('click', () => {
-            started = true;
-            document.getElementById('startButton').disabled = true; // Disable the button after starting
+    ringButton.addEventListener('click', () => {
+      bellSound.play();
+    });
 
-            // Request permission for DeviceMotionEvent on iOS 13+
-            if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                DeviceMotionEvent.requestPermission().then(response => {
-                    if (response === 'granted') {
-                        startDeviceMotion();
-                    } else {
-                        alert('Permission to access device motion data was denied.');
-                    }
-                }).catch(console.error);
-            } else {
-                startDeviceMotion();
-            }
-        });
+    shakeButton.addEventListener('click', () => {
+      if (!isShaking) {
+        isShaking = true;
+        startShakeDetection();
+      }
+    });
 
-        function startDeviceMotion() {
-            if (window.DeviceMotionEvent) {
-                window.addEventListener('devicemotion', function(event) {
-                    if (!started) return; // Do nothing if not started
-                    let acceleration = event.accelerationIncludingGravity;
-                    let shake = Math.sqrt(acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2);
+    function startShakeDetection() {
+      window.addEventListener('devicemotion', handleShake);
+    }
 
-                    if (shake > shakeThreshold && !isShaking) {
-                        bellSound.play();
-                        isShaking = true;
-                    } else if (shake < shakeThreshold && isShaking) {
-                        bellSound.pause();
-                        bellSound.currentTime = 0;
-                        isShaking = false;
-                    }
-                });
-            } else {
-                alert('DeviceMotionEvent is not supported on your device.');
-            }
+    function handleShake(event) {
+      const acceleration = event.accelerationIncludingGravity;
+      const shakeMagnitude = Math.sqrt(acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2);
+
+      if (shakeMagnitude > shakeThreshold) {
+        if (!bellSound.paused) {
+          bellSound.play();
         }
-    </script>
-
+      } else if (bellSound.paused) {
+        // Stop playing if shaking stops
+        bellSound.pause();
+      }
+    }
+  </script>
 </body>
 </html>
