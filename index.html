@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shake to Ring Bell</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
+        }
+        img {
+            width: 200px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <img id="bell" src="https://m.media-amazon.com/images/I/71urGgZbddL.jpg" alt="Bell">
+
+    <audio id="bellSound" loop>
+        <source src="https://www.fesliyanstudios.com/play-mp3/4389" type="audio/mpeg">
+    </audio>
+
+    <script>
+        let bellSound = document.getElementById('bellSound');
+        let isShaking = false;
+        let shakeThreshold = 15; // Adjust this to change sensitivity
+
+        if (window.DeviceMotionEvent) {
+            window.addEventListener('devicemotion', function(event) {
+                let acceleration = event.accelerationIncludingGravity;
+                let shake = Math.sqrt(acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2);
+
+                if (shake > shakeThreshold && !isShaking) {
+                    bellSound.play();
+                    isShaking = true;
+                } else if (shake < shakeThreshold && isShaking) {
+                    bellSound.pause();
+                    bellSound.currentTime = 0;
+                    isShaking = false;
+                }
+            });
+        } else {
+            alert('DeviceMotionEvent is not supported on your device.');
+        }
+    </script>
+
+</body>
+</html>
