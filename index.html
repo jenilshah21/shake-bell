@@ -7,6 +7,7 @@
     <style>
         body {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -18,11 +19,17 @@
             width: 200px;
             height: auto;
         }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
 
     <img id="bell" src="https://m.media-amazon.com/images/I/71urGgZbddL.jpg" alt="Bell">
+    <button id="startButton">Start</button>
 
     <audio id="bellSound" loop>
         <source src="https://www.fesliyanstudios.com/play-mp3/4389" type="audio/mpeg">
@@ -32,9 +39,16 @@
         let bellSound = document.getElementById('bellSound');
         let isShaking = false;
         let shakeThreshold = 15; // Adjust this to change sensitivity
+        let started = false;
+
+        document.getElementById('startButton').addEventListener('click', () => {
+            started = true;
+            document.getElementById('startButton').disabled = true; // Disable the button after starting
+        });
 
         if (window.DeviceMotionEvent) {
             window.addEventListener('devicemotion', function(event) {
+                if (!started) return; // Do nothing if not started
                 let acceleration = event.accelerationIncludingGravity;
                 let shake = Math.sqrt(acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2);
 
