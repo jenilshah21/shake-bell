@@ -40,12 +40,15 @@
     const shakeThreshold = 10; // Adjust this as needed
 
     let isShaking = false;
+    let enableShaking = false;
 
     ringButton.addEventListener('click', () => {
+      enableShaking = false;
       bellSound.play();
     });
 
     shakeButton.addEventListener('click', () => {
+      enableShaking = true;
       if (!isShaking) {
         isShaking = true;
         startShakeDetection();
@@ -60,13 +63,15 @@
       const acceleration = event.accelerationIncludingGravity;
       const shakeMagnitude = Math.sqrt(acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2);
 
-      if (shakeMagnitude > shakeThreshold) {
-        if (bellSound.paused) {
-          bellSound.play();
-        }
-      } else if (!bellSound.paused) {
+      if(enableShaking) {
+        if (shakeMagnitude > shakeThreshold) {
+          if (bellSound.paused) {
+            bellSound.play();
+          }
+        } else if (!bellSound.paused) {
         // Stop playing if shaking stops
         bellSound.pause();
+        }
       }
     }
   </script>
