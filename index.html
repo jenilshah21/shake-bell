@@ -5,31 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ring the Bell</title>
   <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f4f4;
-            font-family: Arial, sans-serif;
-        }
-        img {
-            width: 200px;
-            height: auto;
-        }
-        button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-        }
-    </style>
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f4f4f4;
+      font-family: Arial, sans-serif;
+    }
+
+    img {
+      width: 200px;
+      height: auto;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    /* Active button styles */
+    button.active {
+      background-color: green;
+    }
+  </style>
 </head>
 <body>
   <img src="bell_image.jpg" alt="Bell" id="bellImage">
-  <button id="ringButton">Ring</button>
-  <button id="shakeButton">Shake</button>
+  <button id="ringButton">Loop Ring</button>
+  <button id="shakeButton">Shake To Ring</button>
 
   <audio id="bellSound" src="bell.mp3" loop></audio>
 
@@ -45,6 +53,9 @@
     ringButton.addEventListener('click', () => {
       enableShaking = false;
       bellSound.play();
+      // Set active button
+      ringButton.classList.add('active');
+      shakeButton.classList.remove('active');
     });
 
     shakeButton.addEventListener('click', () => {
@@ -53,6 +64,9 @@
         isShaking = true;
         startShakeDetection();
       }
+      // Set active button
+      shakeButton.classList.add('active');
+      ringButton.classList.remove('active');
     });
 
     function startShakeDetection() {
@@ -63,14 +77,14 @@
       const acceleration = event.accelerationIncludingGravity;
       const shakeMagnitude = Math.sqrt(acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2);
 
-      if(enableShaking) {
+      if (enableShaking) {
         if (shakeMagnitude > shakeThreshold) {
           if (bellSound.paused) {
             bellSound.play();
           }
         } else if (!bellSound.paused) {
-        // Stop playing if shaking stops
-        bellSound.pause();
+          // Stop playing if shaking stops
+          bellSound.pause();
         }
       }
     }
